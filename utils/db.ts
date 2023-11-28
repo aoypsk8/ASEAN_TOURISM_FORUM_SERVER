@@ -1,11 +1,11 @@
 import mysql, { ConnectionOptions } from "mysql2";
 
 const ConnectionConfig: ConnectionOptions = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || '127.0.0.1',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
     port: parseInt(process.env.DB_PORT || "3306"),
-    database: process.env.DB_DATABASE,
+    database: process.env.DB_DATABASE || 'ASEAN_TOURISM',
 };
 
 const connection =mysql.createConnection(ConnectionConfig)
@@ -17,6 +17,5 @@ connection.connect((error:Error | unknown)=>{
         console.log('Connected to MySQL database!')
     }
 })
-
 
 export default connection

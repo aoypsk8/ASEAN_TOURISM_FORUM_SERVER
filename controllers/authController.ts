@@ -11,7 +11,6 @@ interface UserInput {
 }
 
 //Register function
-
 async function register(req: Request, res: Response): Promise<void> {
   const { username, email, password }: UserInput = req.body;
 
@@ -36,8 +35,8 @@ async function register(req: Request, res: Response): Promise<void> {
                 return;
               } else {
                 const query_sql =
-                  "INSERT INTO users (username, email, password, created_at, updated_at,profile,code_number) VALUES (?,?,?,NOW(),NOW(),?,?)";
-                const values = [username, email, hash];
+                  "INSERT INTO users (username, email, password, created_at, updated_at,profile) VALUES (?,?,?,NOW(),NOW(),?)";
+                const values = [username, email, hash,null];
 
                 connection.execute(
                   query_sql,
@@ -84,7 +83,7 @@ async function login(req: Request, res: Response): Promise<void> {
     connection.execute(
       "SELECT * FROM users WHERE email = ?",
       [email],
-      (err: any, results: any[], fields: any) => {
+      function (err: any, results: any[], fields: any) {
         if (err) {
           console.error("Database error:", err);
           res.status(500).json({ message: "Internal server error" });
@@ -134,4 +133,4 @@ async function login(req: Request, res: Response): Promise<void> {
   }
 }
 
-export default {login,register};
+export default { login, register };
