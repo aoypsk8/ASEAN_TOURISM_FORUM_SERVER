@@ -5,6 +5,9 @@ import dotenv from 'dotenv'
 
 //Routes
 import authRoutes from './routes/authRoutes'
+import feedRoutes from './routes/feedRoutes'
+import agendaRoutes from './routes/agendaRoutes'
+import checkinRoutes from './routes/checkinRoutes'
 
 // Initialize dotenv
 dotenv.config()
@@ -19,9 +22,17 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // Use Cors
 app.use(cors())
 
+// Use Static Files
+app.use('/uploads', express.static('uploads'))
+app.use('/uploads/images', express.static('uploads/images'))
+
+
 
 //auth
 app.use('/api/auth',authRoutes)
+app.use('/api/feed',feedRoutes)
+app.use('/api/agenda',agendaRoutes)
+app.use('/api/checkin',checkinRoutes)
 
 // Listen Port
 const port: string | number = process.env.PORT || 3000

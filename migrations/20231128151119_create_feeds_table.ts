@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     table.increments("feedid").primary();
     table.string("title").nullable();
     table.string("description", 1000).nullable();
-    table.json("images").nullable(); 
+    table.string("images").nullable();
     table.timestamps(true, true);
   });
 }
