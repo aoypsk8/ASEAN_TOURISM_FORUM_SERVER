@@ -65,7 +65,7 @@ function createAgenda(req: Request, res: Response) {
           res.json({
             status: "ok",
             message: "Agenda created successfully",
-            product: {
+            agenda: {
               agendaid: results.insertId,
               title: title,
               description: description,
@@ -145,7 +145,7 @@ function deleteAgenda(req: Request, res: Response) {
           res.json({
             status: "ok",
             message: "agenda deleted successfully",
-            product: {
+            agenda: {
               agendaid: req.params.agendaId,
             },
           });

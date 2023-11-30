@@ -5,6 +5,11 @@ import feedController from '../controllers/feedController'
 
 const router: Router =express.Router()
 
+
+//----------------------------------------
+// feeds
+//----------------------------------------
+
 //GetAl;
 router.get('/',feedController.getAllFeeds)
 
@@ -19,5 +24,7 @@ router.put('/:feedId',feedController.updateFeed)
 
 //Delete
 router.delete('/:feedId',feedController.deleteFeed)
+
+
 
 export default router

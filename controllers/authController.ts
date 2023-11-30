@@ -8,11 +8,12 @@ interface UserInput {
   username: string;
   email: string;
   password: string;
+  role: number;
 }
 
-//Register function
+// Register function
 async function register(req: Request, res: Response): Promise<void> {
-  const { username, email, password }: UserInput = req.body;
+  const { username, email, password, role }: UserInput = req.body;
 
   try {
     // Check if the user already exists
@@ -26,7 +27,7 @@ async function register(req: Request, res: Response): Promise<void> {
           return;
         } else {
           if (results.length > 0) {
-            res.status(400).json({ message: "Email already exist" });
+            res.status(400).json({ message: "Email already exists" });
             return;
           } else {
             bcrypt.hash(password, 15, (err, hash) => {
@@ -35,32 +36,45 @@ async function register(req: Request, res: Response): Promise<void> {
                 return;
               } else {
                 const query_sql =
-                  "INSERT INTO users (username, email, password, created_at, updated_at,profile) VALUES (?,?,?,NOW(),NOW(),?)";
-                const values = [username, email, hash,null];
+                  "INSERT INTO users (username, email, password, created_at, updated_at, profile, role) VALUES (?, ?, ?, NOW(), NOW(), ?, ?)";
+                const values = [username, email, hash, null, role];
 
                 connection.execute(
                   query_sql,
                   values,
-                  function (err, results: any, fields) {
+                  async function (err, results: any, fields) {
                     if (err) {
                       res.json({ status: "error", message: err });
                       return;
                     } else {
-                      // Generate JWT token for the registered user
-                      const token = jwt.sign(
-                        { email },
-                        process.env.JWT_SECRET || ""
+                      // Fetch the role information based on the role ID
+                      const roleQuery = "SELECT * FROM roles WHERE roleid = ?";
+                      connection.execute(
+                        roleQuery,
+                        [role],
+                        function (roleErr, roleResults) {
+                          if (roleErr) {
+                            res.json({ status: "error", message: roleErr });
+                            return;
+                          }
+                          const token = jwt.sign(
+                            { email },
+                            process.env.JWT_SECRET || ""
+                          );
+                          // Include the role information in the response
+                          res.json({
+                            status: "ok",
+                            message: "User registered successfully",
+                            token: token,
+                            user: {
+                              id: results.insertId,
+                              username: username,
+                              email: email,
+                              role: roleResults,
+                            },
+                          });
+                        }
                       );
-                      res.json({
-                        status: "ok",
-                        message: "User registered successfully",
-                        token: token,
-                        user: {
-                          id: results.insertId,
-                          username: username,
-                          email: email,
-                        },
-                      });
                     }
                   }
                 );
@@ -97,21 +111,35 @@ async function login(req: Request, res: Response): Promise<void> {
                 res.status(500).json({ message: "Something went wrong" });
                 return;
               } else {
-                if (results) {
-                  const token = jwt.sign(
-                    { email },
-                    process.env.JWT_SECRET || ""
+                if (hash) {
+                  const roleQuery = "SELECT * FROM roles WHERE roleid = ?";
+                  const role = results[0].role;
+                  connection.execute(
+                    roleQuery,
+                    [role],
+                    function (roleErr, roleResults) {
+                      if (roleErr) {
+                        res.json({ status: "error", message: roleErr });
+                        return;
+                      }
+                      const token = jwt.sign(
+                        { email },
+                        process.env.JWT_SECRET || ""
+                      );
+                      // Include the role information in the response
+                      res.status(200).json({
+                        message: "User logged in successfully !!",
+                        token: token,
+                        user: {
+                          userid: results[0].userid,
+                          username: results[0].username,
+                          email: results[0].email,
+                          role: roleResults,
+                          created_at: results[0].created_at,
+                        },
+                      });
+                    }
                   );
-
-                  res.status(200).json({
-                    message: "User logged in successfully !!",
-                    token: token,
-                    user: {
-                      id: results[0].id,
-                      username: results[0].username,
-                      email: results[0].email,
-                    },
-                  });
                 } else {
                   res.status(400).json({
                     message: "Email and password does not match",

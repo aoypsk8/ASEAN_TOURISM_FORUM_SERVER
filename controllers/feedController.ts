@@ -83,7 +83,7 @@ function createFeed(req: Request, res: Response) {
             res.json({
               status: "ok",
               message: "Feed created successfully",
-              product: {
+              feed: {
                 feedid: results.insertId,
                 title: title,
                 description: description,
@@ -137,7 +137,7 @@ function updateFeed(req: Request, res: Response) {
             res.json({
               status: "ok",
               message: "Feed updated successfully",
-              product: {
+              feed: {
                 feedid: req.params.feedId,
                 title: title,
                 description: description,
@@ -172,7 +172,7 @@ function deleteFeed(req: Request, res: Response) {
             res.json({
               status: "ok",
               message: "Feed deleted successfully",
-              product: {
+              feed: {
                 id: req.params.feedId,
               },
             })
