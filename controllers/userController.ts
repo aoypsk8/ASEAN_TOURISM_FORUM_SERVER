@@ -29,11 +29,11 @@ function getUserById(req: Request, res: Response) {
                 return;
               }
               res.json({
-                userid:req.params.userId,
+                userid: req.params.userId,
                 username: results[0].username,
                 email: results[0].email,
                 profile: results[0].profile,
-                role:roleResults
+                role: roleResults,
               });
             }
           );
@@ -46,31 +46,26 @@ function getUserById(req: Request, res: Response) {
   }
 }
 
-
-
 //----------------------------------------
 // Update user
 //----------------------------------------
 function updateUser(req: Request, res: Response) {
-  console.log(`body: ${JSON.stringify(req.body)}`);
   upload(req, res, async (err) => {
+    const image = req.file ? req.file.filename : null;
+      console.log(`Received image data: ${image}`);
     if (err instanceof multer.MulterError) {
-      console.log(`error: ${JSON.stringify(err)}`);
+      console.log(`error1: ${JSON.stringify(err)}`);
       return res.status(500).json({ message: err });
     } else if (err) {
-      console.log(`error: ${JSON.stringify(err)}`);
-      return res.status(500).json({ message: err });
+      console.log(`error2: ${JSON.stringify(err.message)}`);
+      return res.status(500).json({ message: 'Error processing file upload', error: err });
     } else {
       console.log(`file: ${JSON.stringify(req.file)}`);
-      console.log(`body: ${JSON.stringify(req.body)}`);
       try {
         const image = req.file ? req.file.filename : null;
-        // const profileImagePath = req.file ? req.file.filename : null;
-
-        let sql =
-          "UPDATE users SET profile =?  WHERE userid = ?";
-        let params = [ image, req.params.userId];
-
+        console.log(`Received image data: ${image}`);
+        let sql = "UPDATE users SET profile =?  WHERE userid = ?";
+        let params = [image, req.params.userId];
         connection.execute(sql, params, function (err) {
           if (err) {
             res.json({ status: "error", message: err });
@@ -87,12 +82,11 @@ function updateUser(req: Request, res: Response) {
           }
         });
       } catch (err) {
-        console.error("Error storing user in the database: ", err);
-        res.sendStatus(500);
+        console.error("Error during image upload:", err);
+        res.status(500).json({ message: "Internal Server Error" });
       }
     }
   });
 }
 
-
-export default { getUserById ,updateUser};
+export default { getUserById, updateUser };

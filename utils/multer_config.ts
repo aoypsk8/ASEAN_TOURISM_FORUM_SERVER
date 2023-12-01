@@ -14,14 +14,6 @@ const storage = multer.diskStorage({
     }
     callback(null, folder)
   },
-  filename: (
-    req: Request,
-    file: Express.Multer.File,
-    callback: (error: Error | null, filename: string) => void
-  ) => {
-    const ext = file.mimetype.split("/")[1]
-    callback(null, `${file.fieldname}-${Date.now()}.${ext}`)
-  },
 })
 
 const fileFilter = (
@@ -29,7 +21,7 @@ const fileFilter = (
   file: Express.Multer.File,
   callback: FileFilterCallback
 ) => {
-  if (file.mimetype.startsWith("image/")) {
+  if (file.mimetype.startsWith("")) {
     callback(null, true)
   } else {
     callback(new Error("Not an image! Please upload an image."))
@@ -39,7 +31,7 @@ const fileFilter = (
 const multerConfig = {
   config: {
     storage,
-    limits: { fileSize: 1024 * 1024 * 5 }, 
+    limits: { fileSize: 1024 * 1024 * 100 }, 
     fileFilter,
   },
   keyUpload: "photo",

@@ -15,6 +15,7 @@ dotenv.config()
 
 //
 
+
 // Initialize App
 const app: Express = express()
 
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
 
 // Parse incoming JSON requests
 app.use(bodyParser.json())
