@@ -55,12 +55,14 @@ function authenticateTokenAdmin(
   jwt.verify(token, process.env.JWT_SECRET || "", (err, user) => {
     if (err) {
       return res.json({
-        message: "Forbidden",
+        message: "Forbidden if not admin",
         status: 403,
       });
     } else {
-      const secretKey = process.env.JWT_SECRET || "aoy@2023secret";
-      const decodedToken = jwt.verify(token, secretKey) as TokenPayload;
+      const decodedToken = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "aoy@2023secret"
+      ) as TokenPayload;
       console.log(decodedToken.role[0]["rolename"]);
       if (decodedToken.role[0]["rolename"] === "Admin") {
         req.user = user;

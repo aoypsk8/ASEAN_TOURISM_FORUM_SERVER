@@ -4,6 +4,7 @@ import connection from "../utils/db";
 import multerConfig from "../utils/multer_config";
 
 const upload = multer(multerConfig.config).single(multerConfig.keyUpload);
+
 //----------------------------------------
 // Get user by id
 //----------------------------------------
