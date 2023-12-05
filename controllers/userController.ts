@@ -4,7 +4,6 @@ import connection from "../utils/db";
 import multerConfig from "../utils/multer_config";
 
 const upload = multer(multerConfig.config).single(multerConfig.keyUpload);
-
 //----------------------------------------
 // Get user by id
 //----------------------------------------
@@ -16,6 +15,9 @@ function getUserById(req: Request, res: Response) {
       function (err, results: any) {
         if (err) {
           res.json({ status: "error", message: err });
+          return;
+        } else if (!results || results.length === 0) {
+          res.json({ status: "error", message: "User not found" });
           return;
         } else {
           const roleQuery = "SELECT * FROM roles WHERE roleid = ?";
@@ -41,7 +43,7 @@ function getUserById(req: Request, res: Response) {
       }
     );
   } catch (err) {
-    console.error("Error storing user in the database: ", err);
+    console.error("Error getting user from the database: ", err);
     res.sendStatus(500);
   }
 }
@@ -51,34 +53,42 @@ function getUserById(req: Request, res: Response) {
 //----------------------------------------
 function updateUser(req: Request, res: Response) {
   upload(req, res, async (err) => {
-    const image = req.file ? req.file.filename : null;
-      console.log(`Received image data: ${image}`);
+    // const image = req.file ? req.file.filename : null;
+    // console.log(`Received image data: ${image}`);
     if (err instanceof multer.MulterError) {
       console.log(`error1: ${JSON.stringify(err)}`);
       return res.status(500).json({ message: err });
     } else if (err) {
       console.log(`error2: ${JSON.stringify(err.message)}`);
-      return res.status(500).json({ message: 'Error processing file upload', error: err });
+      return res
+        .status(500)
+        .json({ message: "Error processing file upload", error: err });
     } else {
-      console.log(`file: ${JSON.stringify(req.file)}`);
+      // console.log(`file: ${JSON.stringify(req.file)}`);
       try {
         const image = req.file ? req.file.filename : null;
-        console.log(`Received image data: ${image}`);
+        // console.log(`Received image data: ${image}`);
         let sql = "UPDATE users SET profile =?  WHERE userid = ?";
         let params = [image, req.params.userId];
-        connection.execute(sql, params, function (err) {
+        connection.execute(sql, params, function (err, results: any) {
           if (err) {
             res.json({ status: "error", message: err });
             return;
           } else {
-            res.json({
-              status: "ok",
-              message: "User updated successfully",
-              user: {
-                userid: req.params.userId,
-                profile: image,
-              },
-            });
+            if (results.affectedRows === 0) {
+              res
+                .status(404)
+                .json({ status: "not found", message: "User not found" });
+            } else {
+              res.json({
+                status: "ok",
+                message: "User updated successfully",
+                user: {
+                  userid: req.params.userId,
+                  profile: image,
+                },
+              });
+            }
           }
         });
       } catch (err) {

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import multer from "multer";
 import connection from "../utils/db";
 import multerConfig from "../utils/multer_config";
+import { RowDataPacket } from "mysql2";
 
 const upload = multer(multerConfig.config).single(multerConfig.keyUpload);
 
@@ -40,7 +41,15 @@ function getByFeedId(req: Request, res: Response) {
           res.json({ status: "error", message: err });
           return;
         } else {
-          res.json(results);
+          const rowResults = results as RowDataPacket[];
+          if (rowResults.length === 0) {
+            // Schedule not found
+            res
+              .status(404)
+              .json({ status: "not found", message: "feed not found" });
+          } else {
+            res.json(rowResults);
+          }
         }
       }
     );
@@ -121,7 +130,7 @@ function updateFeed(req: Request, res: Response) {
 
         let sql =
           "UPDATE feeds SET title = ?, description = ? WHERE feedid = ?";
-        let params = [title, description, image, req.params.feedId];
+        let params = [title, description, req.params.feedId];
 
         if (image) {
           sql =
@@ -129,21 +138,28 @@ function updateFeed(req: Request, res: Response) {
           params = [title, description, image, req.params.feedId];
         }
 
-        connection.execute(sql, params, function (err) {
+        connection.execute(sql, params, function (err, results: any) {
           if (err) {
             res.json({ status: "error", message: err });
             return;
           } else {
-            res.json({
-              status: "ok",
-              message: "Feed updated successfully",
-              feed: {
-                feedid: req.params.feedId,
-                title: title,
-                description: description,
-                image: image,
-              },
-            });
+            // Check if any rows were affected
+            if (results.affectedRows === 0) {
+              res
+                .status(404)
+                .json({ status: "not found", message: "feed not found" });
+            } else {
+              res.json({
+                status: "ok",
+                message: "Feed updated successfully",
+                feed: {
+                  feedid: req.params.feedId,
+                  title: title,
+                  description: description,
+                  image: image,
+                },
+              });
+            }
           }
         });
       } catch (err) {
@@ -154,20 +170,23 @@ function updateFeed(req: Request, res: Response) {
   });
 }
 
-
-
 //----------------------------------------
 // Delete feed
 //----------------------------------------
 function deleteFeed(req: Request, res: Response) {
-    try {
-      connection.execute(
-        "DELETE FROM feeds WHERE feedid = ?",
-        [req.params.feedId],
-        function (err) {
-          if (err) {
-            res.json({ status: "error", message: err })
-            return
+  try {
+    connection.execute(
+      "DELETE FROM feeds WHERE feedid = ?",
+      [req.params.feedId],
+      function (err, results: any) {
+        if (err) {
+          res.json({ status: "error", message: err });
+          return;
+        } else {
+          if (results.affectedRows === 0) {
+            res
+              .status(404)
+              .json({ status: "not found", message: "feed not found" });
           } else {
             res.json({
               status: "ok",
@@ -175,22 +194,23 @@ function deleteFeed(req: Request, res: Response) {
               feed: {
                 id: req.params.feedId,
               },
-            })
+            });
           }
         }
-      )
-      // Delete file from server
-      const fs = require("fs")
-      const path = require("path")
-      const filePath = path.join(
-        __dirname,
-        "../public/uploads/",
-        req.params.feedId
-      )
-    } catch (err) {
-      console.error("Error storing feed in the database: ", err)
-      res.sendStatus(500)
-    }
+      }
+    );
+    // Delete file from server
+    const fs = require("fs");
+    const path = require("path");
+    const filePath = path.join(
+      __dirname,
+      "../public/uploads/",
+      req.params.feedId
+    );
+  } catch (err) {
+    console.error("Error storing feed in the database: ", err);
+    res.sendStatus(500);
   }
+}
 
-export default { createFeed, updateFeed, getAllFeeds, getByFeedId ,deleteFeed};
+export default { createFeed, updateFeed, getAllFeeds, getByFeedId, deleteFeed };

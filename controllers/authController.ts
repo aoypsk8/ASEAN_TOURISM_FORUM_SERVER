@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import connection from "../utils/db";
@@ -9,6 +9,10 @@ interface UserInput {
   email: string;
   password: string;
   role: number;
+}
+interface TokenPayload extends JwtPayload {
+  email: string;
+  role: any; 
 }
 
 // Register function
@@ -57,10 +61,19 @@ async function register(req: Request, res: Response): Promise<void> {
                             res.json({ status: "error", message: roleErr });
                             return;
                           }
-                          const token = jwt.sign(
-                            { email },
-                            process.env.JWT_SECRET || ""
-                          );
+
+                          const tokenPayload: TokenPayload = {
+                            email: email,
+                            role: roleResults,
+                          };
+                          const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || "");
+
+
+
+                          // const token = jwt.sign(
+                          //   { email },
+                          //   process.env.JWT_SECRET || ""
+                          // );
                           // Include the role information in the response
                           res.json({
                             status: "ok",
@@ -122,10 +135,17 @@ async function login(req: Request, res: Response): Promise<void> {
                         res.json({ status: "error", message: roleErr });
                         return;
                       }
-                      const token = jwt.sign(
-                        { email },
-                        process.env.JWT_SECRET || ""
-                      );
+                      
+                      const tokenPayload: TokenPayload = {
+                        email: results[0].email,
+                        role: roleResults,
+                      };
+                      const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || "");
+                      
+                      // const token = jwt.sign(
+                      //   { email },
+                      //   process.env.JWT_SECRET || ""
+                      // );
                       // Include the role information in the response
                       res.status(200).json({
                         message: "User logged in successfully !!",

@@ -1,33 +1,74 @@
-import jwt, { JwtPayload } from 'jsonwebtoken'
-import { Request, Response, NextFunction } from 'express'
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
 
-
-interface RequestWithUser extends Request{
-    user?:JwtPayload | string
+interface RequestWithUser extends Request {
+  user?: JwtPayload | string;
+}
+interface TokenPayload extends JwtPayload {
+  email: string;
+  role: any;
 }
 
+function authenticateToken(
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-function authenticateToken(req:RequestWithUser,res:Response,next:NextFunction){
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
+  if (token == null) {
+    return res.json({
+      message: "Unauthorized",
+      status: 401,
+    });
+  }
 
-
-    if(token == null){
-        return res.json({
-            message:"Unauthorized",
-            status:401
-        })
+  jwt.verify(token, process.env.JWT_SECRET || "", (err, user) => {
+    if (err) {
+      return res.json({
+        message: "Forbidden",
+        status: 403,
+      });
+    } else {
+      req.user = user;
+      next();
     }
-
-    jwt.verify(token,process.env.JWT_SECRET || '',(err,user)=>{
-        if(err){
-            return res.json({
-                message:'Forbidden',
-                status:403
-            })
-        }
-        req.user = user
-        next()
-    })
+  });
 }
-export default authenticateToken
+
+function authenticateTokenAdmin(
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (token == null) {
+    return res.json({
+      message: "Unauthorized",
+      status: 401,
+    });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET || "", (err, user) => {
+    if (err) {
+      return res.json({
+        message: "Forbidden",
+        status: 403,
+      });
+    } else {
+      const secretKey = process.env.JWT_SECRET || "aoy@2023secret";
+      const decodedToken = jwt.verify(token, secretKey) as TokenPayload;
+      console.log(decodedToken.role[0]["rolename"]);
+      if (decodedToken.role[0]["rolename"] === "Admin") {
+        req.user = user;
+        next();
+      } else {
+        res.json({ message: "Not Admin" });
+      }
+    }
+  });
+}
+export { authenticateToken, authenticateTokenAdmin };

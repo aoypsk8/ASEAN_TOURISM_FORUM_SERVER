@@ -9,11 +9,10 @@ import feedRoutes from './routes/feedRoutes'
 import agendaRoutes from './routes/agendaRoutes'
 import checkinRoutes from './routes/checkinRoutes'
 import userRoutes from './routes/userRoutes'
+import scheduleRoutes from './routes/scheduleRoute'
 
 // Initialize dotenv
 dotenv.config()
-
-//
 
 
 // Initialize App
@@ -45,6 +44,7 @@ app.use('/api/feed',feedRoutes)
 app.use('/api/agenda',agendaRoutes)
 app.use('/api/checkin',checkinRoutes)
 app.use('/api/user',userRoutes)
+app.use('/api/schedule',scheduleRoutes)
 
 // Listen Port
 const port: string | number = process.env.PORT || 3000

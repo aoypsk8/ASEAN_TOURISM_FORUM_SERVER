@@ -1,14 +1,10 @@
 import express ,{Router} from 'express'
 import feedController from '../controllers/feedController'
-
+import { authenticateToken, authenticateTokenAdmin } from '../middleware/authMiddleware';
 
 
 const router: Router =express.Router()
 
-
-//----------------------------------------
-// feeds
-//----------------------------------------
 
 //GetAl;
 router.get('/',feedController.getAllFeeds)
@@ -17,13 +13,13 @@ router.get('/',feedController.getAllFeeds)
 router.get('/:feedId',feedController.getByFeedId)
 
 //Create
-router.post('/createFeed',feedController.createFeed)
+router.post('/createFeed',authenticateTokenAdmin,feedController.createFeed)
 
 //Update
-router.put('/:feedId',feedController.updateFeed)
+router.put('/:feedId',authenticateTokenAdmin,feedController.updateFeed)
 
 //Delete
-router.delete('/:feedId',feedController.deleteFeed)
+router.delete('/:feedId',authenticateTokenAdmin,feedController.deleteFeed)
 
 
 
